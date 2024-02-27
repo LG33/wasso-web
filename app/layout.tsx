@@ -5,12 +5,12 @@ import { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://partialprerendering.com'),
-  title: 'Next.js Partial Prerendering',
-  description: 'A demo of Next.js using Partial Prerendering.',
+  metadataBase: new URL('https://wasso.org'),
+  title: 'Wasso',
+  description: 'Une super appli !',
   openGraph: {
-    title: 'Next.js Partial Prerendering',
-    description: 'A demo of Next.js using Partial Prerendering.',
+    title: 'Wasso',
+    description: 'Une super appli !',
   },
   twitter: {
     card: 'summary_large_image',

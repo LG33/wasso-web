@@ -1,18 +1,25 @@
 import { ExternalRedirect } from '#/components/external-redirect';
 import { RefreshCache } from '#/components/refresh-cache';
-import { accCheckouts } from '#/lib/firebase/firestore';
-import { useDocSnapshot } from '#/lib/firebase/hooks';
 import {
+  accAccountsCol,
+  accCheckoutsCol,
+  batchUpdate,
+  getAccTransactionLinesCol,
+  getAccTransactionsCol,
+} from '#/lib/firebase/firestore';
+import {
+  DocumentReference,
   doc,
   getDoc,
   getDocs,
-  onSnapshot,
+  query,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
 export async function generateStaticParams() {
-  const checkouts = await getDocs(accCheckouts);
+  const checkouts = await getDocs(accCheckoutsCol);
 
   return checkouts.docs.map((checkout) => ({
     id: checkout.id,
@@ -25,49 +32,53 @@ export default async function Page({
   params: { id: string; status: string };
 }) {
   const status = params.status.toLocaleUpperCase();
-  const docRef = doc(accCheckouts, params.id);
+  const checkoutRef = doc(accCheckoutsCol, params.id);
 
-  const docData = (await getDoc(docRef)).data();
+  const checkoutData = (await getDoc(checkoutRef)).data();
 
   async function checkIfPostChanged() {
     'use server';
     if (
-      (await getDoc(doc(accCheckouts, params.id))).data()?.status !=
-      docData?.status
+      (await getDoc(doc(accCheckoutsCol, params.id))).data()?.status !=
+      checkoutData?.status
     ) {
-      revalidatePath('/');
+      revalidatePath(`/checkout/${params.id}`);
     }
   }
 
   var message = '';
 
-  if (status == 'OPENED') {
-    if (docData?.status == 'CREATED') {
-      message = 'Chargement...';
-    } else {
-      if (docData?.status == 'READY' && docData?.url) {
-        message = 'Redirection...';
-      } else if (docData != null) {
-        message = `Statut du paiement : ${docData?.status}`;
+  if (checkoutData != null) {
+    if (status == 'OPENED') {
+      if (checkoutData.status == 'CREATED') {
+        message = 'Chargement...';
       } else {
-        message = `Le paiement ID ${params.id} est introuvable`;
+        if (checkoutData?.status == 'READY' && checkoutData.url) {
+          message = 'Redirection...';
+        } else if (checkoutData != null) {
+          message = `Statut du paiement : ${checkoutData.status}`;
+        }
+      }
+    } else {
+      if (status != checkoutData.status)
+        updateDoc(checkoutRef, { status: status?.toLocaleUpperCase() });
+      if (status == 'COMPLETED') {
+        message = 'Paiement réussi. Vous pouvez fermer cette fenêtre.';
+      } else {
+        message = `Paiement ${status}`;
       }
     }
   } else {
-    if (status != docData?.status)
-      updateDoc(docRef, { status: status?.toLocaleUpperCase() });
-    if (status == 'COMPLETED')
-      message = 'Paiement réussi. Vous pouvez fermer cette fenêtre.';
-    message = `Paiement ${status}`;
+    message = `Le paiement ID ${params.id} est introuvable`;
   }
 
   return (
     <div className="text-center">
-      {docData?.status == 'CREATED' && (
+      {checkoutData?.status == 'CREATED' && (
         <RefreshCache check={checkIfPostChanged} />
       )}
-      {docData?.status == 'READY' && docData?.url && (
-        <ExternalRedirect url={docData?.url} />
+      {checkoutData?.status == 'READY' && checkoutData?.url && (
+        <ExternalRedirect url={checkoutData?.url} />
       )}
       <p>{message}</p>
     </div>

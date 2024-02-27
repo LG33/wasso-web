@@ -1,12 +1,12 @@
 'use client';
 
-import { accCheckouts } from '#/lib/firebase/firestore';
+import { accCheckoutsCol } from '#/lib/firebase/firestore';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useDocSnapshot } from '#/lib/firebase/hooks';
 import { useEffect } from 'react';
 
 export function CheckoutStatus({ id, status }: { id: string; status: string }) {
-  const docRef = doc(accCheckouts, id);
+  const docRef = doc(accCheckoutsCol, id);
 
   const [docData, isLoading] = useDocSnapshot(docRef, status == 'OPENED');
 
