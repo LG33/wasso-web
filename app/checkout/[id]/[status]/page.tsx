@@ -1,22 +1,10 @@
 import { ExternalRedirect } from '#/components/external-redirect';
 import { RefreshCache } from '#/components/refresh-cache';
-import {
-  accAccountsCol,
-  accCheckoutsCol,
-  batchUpdate,
-  getAccTransactionLinesCol,
-  getAccTransactionsCol,
-} from '#/lib/firebase/firestore';
-import {
-  DocumentReference,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
+import { accCheckoutsCol } from '#/lib/firebase/firestore';
+import { doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
 
 export async function generateStaticParams() {
   const checkouts = await getDocs(accCheckoutsCol);
