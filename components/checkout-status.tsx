@@ -2,31 +2,43 @@
 
 import { accCheckouts } from '#/lib/firebase/firestore';
 import { doc, updateDoc } from 'firebase/firestore';
-import { ExternalRedirect } from './external-redirect';
 import { useDocSnapshot } from '#/lib/firebase/hooks';
+import { useEffect } from 'react';
 
 export function CheckoutStatus({ id, status }: { id: string; status: string }) {
   const docRef = doc(accCheckouts, id);
 
   const [docData, isLoading] = useDocSnapshot(docRef, status == 'OPENED');
 
+  useEffect(() => {
+    if (docData?.url) window.location.href = docData?.url;
+  }, [docData]);
+
+  var message = '';
+
   if (status == 'OPENED') {
-    if (isLoading || docData?.status == 'CREATED') {
-      return <p>Chargement...</p>;
+    if (docData?.status == 'CREATED') {
+      message = 'Chargement...';
     } else {
       if (docData?.status == 'READY' && docData?.url) {
-        return <ExternalRedirect url={docData.url} />;
+        message = 'Redirection...';
       } else if (docData != null) {
-        return <p>Statut du paiement : {docData?.status}</p>;
+        message = `Statut du paiement : ${docData?.status}`;
       } else {
-        return <p>Le paiement ID {id} est introuvable</p>;
+        message = `Le paiement ID ${id} est introuvable`;
       }
     }
   } else {
     if (status != docData?.status)
       updateDoc(docRef, { status: status?.toLocaleUpperCase() });
     if (status == 'COMPLETED')
-      return <p>Paiement réussi. Vous pouvez fermer cette fenêtre.</p>;
-    return <p>Paiement {status}</p>;
+      message = 'Paiement réussi. Vous pouvez fermer cette fenêtre.';
+    message = `Paiement ${status}`;
   }
+
+  return (
+    <div className="text-center">
+      <p>{message}</p>
+    </div>
+  );
 }

@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 
 export function ExternalRedirect({ url }: { url: string }) {
   useEffect(() => {
-    window.location.replace(url);
-  }, [url]);
+    window.location.href = url;
+  }, []);
 
-  return <p>Redirection...</p>;
+  return null;
 }

@@ -1,27 +1,12 @@
-import { NextLogo } from '#/components/next-logo';
-import {
-  MagnifyingGlassIcon,
-  ShoppingCartIcon,
-} from '@heroicons/react/24/solid';
-import Image from 'next/image';
-import { CartCount } from '#/components/cart-count';
-import { cookies } from 'next/headers';
-import { Suspense } from 'react';
-
-async function CartCountFromCookies() {
-  const cartCount = Number(cookies().get('_cart_count')?.value || '0');
-  return <CartCount initialCartCount={cartCount} />;
-}
+import { WassoLogo } from './wasso-logo';
 
 export function Header() {
   return (
-    <div className="flex items-center justify-between gap-x-3 rounded-lg bg-gray-800 px-3 py-3 lg:px-5 lg:py-4">
-      <div className="flex gap-x-3">
-        <div className="h-10 w-10 hover:opacity-70">
-          <NextLogo />
-        </div>
+    <div className="flex items-center justify-between gap-x-3 bg-primary px-3 py-3 lg:px-5 lg:py-4">
+      <div className="flex grow gap-x-3">
+        <WassoLogo />
 
-        <div className="relative flex-1">
+        {/* <div className="relative flex-1">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <MagnifyingGlassIcon className="h-5 w-5 text-gray-300" />
           </div>
@@ -33,11 +18,11 @@ export function Header() {
             className="focus:border-vercel-pink focus:ring-vercel-pink block w-full rounded-full border-none bg-gray-600 pl-10 font-medium text-gray-200 focus:ring-2"
             autoComplete="off"
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="flex shrink-0 gap-x-3">
-        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-600 text-white">
+        {/* <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-600 text-white">
           <ShoppingCartIcon className="w-6 text-white" />
           <div className="bg-vercel-cyan absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-sm font-bold text-cyan-800">
             <Suspense fallback={<span></span>}>
@@ -53,7 +38,7 @@ export function Header() {
           height={40}
           alt="User"
           priority
-        />
+        /> */}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { organizationCol } from '#/lib/firebase/firestore';
 import { getDocs, query, where, limit } from 'firebase/firestore';
+import { Suspense } from 'react';
 
 export async function generateStaticParams() {
   const organizations = await getDocs(organizationCol);
@@ -9,7 +10,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function getData({ org }: { org: string }) {
+async function getData({ org }: { org: string }) {
   const organizations = await getDocs(
     query(organizationCol, where('slug', '==', org), limit(1)),
   );
@@ -21,8 +22,9 @@ export default async function Page({ params }: { params: { org: string } }) {
   const data = await getData(params);
 
   return (
-    <p>
-      {data.name} {params.org}
-    </p>
+    <div className="text-center">
+      <p className="text-2xl font-bold">{data.name}</p>
+      <p>{params.org}</p>
+    </div>
   );
 }
