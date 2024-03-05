@@ -2,7 +2,23 @@ import { DocumentReference } from 'firebase/firestore';
 
 export type Organization = {
   name: string;
-  slug: number;
+  description: string;
+  slug: string;
+};
+
+export type OrganizationForm = {
+  title: string;
+  description: string;
+  subscriptions: DocumentReference[];
+  payment_methods: List<'cash' | 'check' | 'online'>;
+  slug: string;
+};
+
+export type Subscription = {
+  id: string;
+  name: string;
+  min_price: number;
+  default_price: number;
 };
 
 export type AccCheckout = {

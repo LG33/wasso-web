@@ -2,7 +2,7 @@ import { WassoLogo } from './wasso-logo';
 
 export function Header() {
   return (
-    <div className="flex items-center justify-between gap-x-3 bg-primary px-3 py-3 lg:px-5 lg:py-4">
+    <div className="flex items-center justify-between gap-x-3 bg-card px-3 py-3 lg:px-5 lg:py-4">
       <div className="flex grow gap-x-3">
         <WassoLogo />
 
