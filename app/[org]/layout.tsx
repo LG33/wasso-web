@@ -13,7 +13,6 @@ export async function generateMetadata({
   const { data } = await getOrganizationFromSlug(params.org);
 
   return {
-    metadataBase: params.org,
     title: data.name,
     description: data.description,
     openGraph: {

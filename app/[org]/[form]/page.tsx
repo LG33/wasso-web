@@ -15,7 +15,6 @@ export async function generateMetadata({
   const { organization, data } = await getFormFromSlug(params.org, params.form);
 
   return {
-    metadataBase: params.form,
     title: `${data.title} - ${organization.data.name}`,
     description: data.description,
     openGraph: {
