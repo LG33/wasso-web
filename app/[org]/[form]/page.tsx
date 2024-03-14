@@ -3,9 +3,12 @@ import {
   getFormsCol,
   getOrganizationFromSlug,
 } from '#/lib/firebase/firestore';
-import { addDoc, getDoc, getDocs } from 'firebase/firestore';
+import { getDoc, getDocs } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import OrganizationForm from '#/components/organization-form';
 import { Subscription } from '#/types/firebase';
+import { AddMemberResponse, AddMemberRequest } from '#/types/add_member';
+import { firebaseApp } from '#/lib/firebase/initialize';
 
 export async function generateMetadata({
   params,
@@ -44,7 +47,7 @@ export default async function Page({
 }: {
   params: { org: string; form: string };
 }) {
-  const { data } = await getFormFromSlug(params.org, params.form);
+  const { organization, data } = await getFormFromSlug(params.org, params.form);
   const subscriptions: Subscription[] = (
     await Promise.all(data.subscriptions.map((subRef) => getDoc(subRef)))
   )
@@ -54,12 +57,30 @@ export default async function Page({
       ...(doc.data() as Omit<Subscription, 'id'>),
     }));
 
+  async function handleSubmit(values: AddMemberRequest) {
+    'use server';
+    console.log(values);
+    const functions = getFunctions(firebaseApp, 'europe-west6');
+    const addMember = httpsCallable<AddMemberRequest, AddMemberResponse>(
+      functions,
+      'addMember',
+    );
+    try {
+      return (
+        await addMember({ ...values, organizationId: organization.doc.id })
+      ).data;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   return (
     <OrganizationForm
       title={data.title}
       description={data.description}
-      payment_methods={data.payment_methods}
+      paymentMethods={data.payment_methods}
       subscriptions={subscriptions}
+      onSubmit={handleSubmit}
     ></OrganizationForm>
   );
 }

@@ -10,7 +10,7 @@ export type OrganizationForm = {
   title: string;
   description: string;
   subscriptions: DocumentReference[];
-  payment_methods: List<'cash' | 'check' | 'online'>;
+  payment_methods: List<'CASH' | 'CHECK' | 'ONLINE'>;
   slug: string;
 };
 

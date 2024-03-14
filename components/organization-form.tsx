@@ -25,17 +25,32 @@ import { Input } from '#/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group';
 import { OrganizationForm, Subscription } from '#/types/firebase';
 import { useEffect, useState } from 'react';
+import { AddMemberResponse, AddMemberRequest } from '#/types/add_member';
+import { useAsync } from '#/lib/firebase/hooks';
 
-export default function OrganizationForm(
-  data: Omit<OrganizationForm, 'subscriptions' | 'slug'> & {
-    subscriptions: Subscription[];
-  },
-) {
+export default function OrganizationForm({
+  title,
+  description,
+  paymentMethods: paymentMethods,
+  subscriptions,
+  onSubmit,
+}: {
+  title: string;
+  description: string;
+  paymentMethods: OrganizationForm['payment_methods'];
+  subscriptions: Subscription[];
+  onSubmit: (
+    values: AddMemberRequest,
+  ) => Promise<AddMemberResponse | undefined>;
+}) {
   const [selectedSubscription, setSelectedSubscription] = useState(
-    data.subscriptions[0],
+    subscriptions[0],
   );
+  const [trigger, responseData, isLoading, error] =
+    useAsync<AddMemberResponse>();
+
   const formSchema = z.object({
-    display_name: z
+    displayName: z
       .string({
         required_error: 'Ce champs est requis',
       })
@@ -47,10 +62,10 @@ export default function OrganizationForm(
         required_error: 'Ce champs est requis',
       })
       .email(),
-    payment_type: z.enum(['check', 'cash', 'online'], {
+    paymentMethod: z.enum(['CHECK', 'CASH', 'ONLINE'], {
       required_error: 'You need to select a payment type.',
     }),
-    subscription: z.string({
+    subscriptionId: z.string({
       required_error: 'You need to select a payment type.',
     }),
     price: z
@@ -60,12 +75,11 @@ export default function OrganizationForm(
       .min(selectedSubscription.min_price),
   });
 
-  // 1. Define your form.
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<AddMemberRequest>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      payment_type: 'online',
-      subscription: selectedSubscription.id,
+      paymentMethod: 'ONLINE',
+      subscriptionId: selectedSubscription.id,
       price: selectedSubscription.default_price,
     },
   });
@@ -73,30 +87,36 @@ export default function OrganizationForm(
 
   useEffect(() => {
     setSelectedSubscription(
-      data.subscriptions.find(({ id }) => id == formValues.subscription)!,
+      subscriptions.find(({ id }) => id == formValues.subscriptionId)!,
     );
     console.log(selectedSubscription.name);
-  }, [data.subscriptions, formValues.subscription]);
+  }, [subscriptions, formValues.subscriptionId]);
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  useEffect(() => {
+    if (responseData?.acc_checkout_id)
+      window.location.href = `/checkout/${responseData.acc_checkout_id}/opened`;
+  }, [responseData]);
+
+  function handleSubmit(values: AddMemberRequest) {
+    trigger(onSubmit(values));
   }
 
   return (
     <Form {...form}>
-      <h1 className="mb-3 text-2xl font-bold">{data.title}</h1>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <h1 className="mb-3 text-2xl font-bold">{title}</h1>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="display_name"
+          name="displayName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Prénom(s) et nom(s)</FormLabel>
               <FormControl>
-                <Input {...field} className="bg-card" />
+                <Input
+                  defaultValue={field.value}
+                  onChange={field.onChange}
+                  className="bg-card"
+                />
               </FormControl>
               <FormDescription>
                 Les noms et prénoms que vous voulez associer à votre adhésion
@@ -112,7 +132,11 @@ export default function OrganizationForm(
             <FormItem>
               <FormLabel>Adresse email</FormLabel>
               <FormControl>
-                <Input {...field} className="bg-card" />
+                <Input
+                  defaultValue={field.value}
+                  onChange={field.onChange}
+                  className="bg-card"
+                />
               </FormControl>
               <FormDescription>
                 L&apos;adresse email qui sera associée à votre adhésion
@@ -123,7 +147,7 @@ export default function OrganizationForm(
         />
         <FormField
           control={form.control}
-          name="subscription"
+          name="subscriptionId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Formule</FormLabel>
@@ -132,11 +156,11 @@ export default function OrganizationForm(
                   defaultValue={field.value}
                   onValueChange={field.onChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-card">
                     <SelectValue defaultValue={field.value} />
                   </SelectTrigger>
                   <SelectContent>
-                    {data.subscriptions.map(({ id, name }) => (
+                    {subscriptions.map(({ id, name }) => (
                       <SelectItem key={id} value={id}>
                         {name}
                       </SelectItem>
@@ -150,66 +174,62 @@ export default function OrganizationForm(
           )}
         />
         {selectedSubscription.default_price > 0 && (
-          <>
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prix</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="number" className="bg-card" />
-                  </FormControl>
-                  <FormDescription></FormDescription>
-                  <FormMessage className="font-normal" />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="payment_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Méthode de paiement</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="online" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          En ligne (carte bancaire)
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="cash" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          En espèces
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="check" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Par chèque
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage className="font-normal" />
-                </FormItem>
-              )}
-            />
-          </>
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Prix (€)</FormLabel>
+                <FormControl>
+                  <Input {...field} type="number" className="bg-card" />
+                </FormControl>
+                <FormDescription></FormDescription>
+                <FormMessage className="font-normal" />
+              </FormItem>
+            )}
+          />
         )}
-        <Button type="submit">
-          {form.getValues('payment_type') == 'online'
+        {formValues.price > 0 && paymentMethods.length > 1 && (
+          <FormField
+            control={form.control}
+            name="paymentMethod"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Méthode de paiement</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="ONLINE" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        En ligne (carte bancaire)
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="CASH" />
+                      </FormControl>
+                      <FormLabel className="font-normal">En espèces</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="CHECK" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Par chèque</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage className="font-normal" />
+              </FormItem>
+            )}
+          />
+        )}
+        <Button type="submit" isLoading={isLoading}>
+          {form.getValues('paymentMethod') == 'ONLINE'
             ? 'Suivant'
             : 'Enregistrer'}
         </Button>
