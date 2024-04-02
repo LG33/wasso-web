@@ -65,9 +65,9 @@ export default async function Page({
       {checkoutData?.status == 'CREATED' && (
         <RefreshCache check={checkIfPostChanged} />
       )}
-      {checkoutData?.status == 'READY' && checkoutData?.url && (
-        <ExternalRedirect url={checkoutData?.url} />
-      )}
+      {status == 'OPENED' &&
+        checkoutData?.status == 'READY' &&
+        checkoutData?.url && <ExternalRedirect url={checkoutData?.url} />}
       <p>{message}</p>
     </div>
   );

@@ -50,12 +50,13 @@ export default function OrganizationForm({
     useAsync<AddMemberResponse>();
 
   const formSchema = z.object({
-    displayName: z
+    firstName: z
       .string({
         required_error: 'Ce champs est requis',
-      })
-      .min(10, {
-        message: 'Username must be at least 10 characters.',
+      }),
+    lastName: z
+      .string({
+        required_error: 'Ce champs est requis',
       }),
     email: z
       .string({
@@ -107,10 +108,27 @@ export default function OrganizationForm({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="displayName"
+          name="firstName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Prénom(s) et nom(s)</FormLabel>
+              <FormLabel>Prénom</FormLabel>
+              <FormControl>
+                <Input
+                  defaultValue={field.value}
+                  onChange={field.onChange}
+                  className="bg-card"
+                />
+              </FormControl>
+              <FormMessage className="font-normal" />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="lastName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nom(s)</FormLabel>
               <FormControl>
                 <Input
                   defaultValue={field.value}

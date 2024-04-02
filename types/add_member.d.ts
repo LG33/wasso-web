@@ -1,8 +1,13 @@
 import { OrganizationForm } from './firebase';
 
+interface IDictionary<TValue> {
+  [id: string]: TValue;
+}
+
 export type AddMemberRequest = {
   organizationId: string;
-  displayName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   paymentMethod: OrganizationForm['payment_methods'];
   subscriptionId: string;
