@@ -23,7 +23,7 @@ import {
 } from '#/components/ui/select';
 import { Input } from '#/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group';
-import { OrganizationForm, Subscription } from '#/types/firebase';
+import type { OrganizationForm, Subscription } from '#/types/firebase';
 import { useEffect, useState } from 'react';
 import { AddMemberResponse, AddMemberRequest } from '#/types/add_member';
 import { useAsync } from '#/lib/firebase/hooks';

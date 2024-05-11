@@ -1,6 +1,7 @@
+import { Header } from '#/components/header';
 import { GeistSans } from 'geist/font/sans';
 import { Metadata } from 'next';
-import './globals.css';
+import '../globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://wasso.org'),
@@ -22,7 +23,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={GeistSans.variable}>
-      <body className="overflow-y-scroll pb-36">{children}</body>
+      <body className="overflow-y-scroll pb-36">
+        <Header />
+        <div className="mx-auto max-w-4xl space-y-8 px-2 pt-20 lg:px-8 lg:py-8">
+          <div className="rounded-md border-2 border-accent bg-card p-4 shadow-solid">
+            {children}
+          </div>
+        </div>
+      </body>
     </html>
   );
 }
